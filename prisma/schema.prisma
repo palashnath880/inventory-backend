@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Branch {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  address   String
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  phoneNo   String   @unique
+  name      String
+  password  String
+  isAdmin   Boolean
+  orders    Order[]
+  branchId  String
+  branch    Branch? @relation(fields: [branchId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Skucode {
+  id        String   @id @default(uuid())
+  name      String
+  model     String
+  item      String
+  product   Product?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Address {
+  id        String    @id @default(uuid())
+  country   String
+  state     String
+  address   String?
+  postcode  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  customer  Customer?
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  email     String?  @unique
+  phoneNo   String?  @unique
+  name      String
+  orders    Order[]
+  addressId String   @unique
+  address   Address  @relation(fields: [addressId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Duration {
+  id      String @id @default(uuid())
+  days    Int    @default(0)
+  months  Int    @default(0)
+  years   Int    @default(0) 
+  product Product?
+}
+
+model Product {
+  id        String   @id @default(uuid())
+  remarks   String?
+  skuCodeId String   @unique
+  skuCode   Skucode  @relation(fields: [skuCodeId], references: [id])
+  warrantyId String   @unique
+  warranty   Duration  @relation(fields: [warrantyId], references: [id])
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id         String   @id @default(uuid())
+  quantity   Int      @default(0)
+  creatorId  String   @unique
+  creator    User     @relation(fields: [creatorId], references: [id])
+  customerId String   @unique
+  customer   Customer @relation(fields: [customerId], references: [id])
+  productId  String   @unique
+  product    Product  @relation(fields: [productId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
