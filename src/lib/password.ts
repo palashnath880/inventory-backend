@@ -1,6 +1,6 @@
-import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
-// encrypted pwd
+// encrypt pwd
 const encryptedPwd = (password: string) =>
   new Promise(async (resolve, reject) => {
     try {
@@ -8,14 +8,24 @@ const encryptedPwd = (password: string) =>
         reject({ message: "Password must be provided" });
       }
 
-      const JWT_SECRET_KEY: string = process.env.JWT_SECRET_KEY || "";
+      const salt = await bcrypt.genSalt(10);
+      const hashPwd = await bcrypt.hash(password, salt);
 
-      const encryptedPwd = await jwt.sign(password, JWT_SECRET_KEY);
-
-      resolve(encryptedPwd);
+      resolve(hashPwd);
     } catch (err) {
       reject(err);
     }
   });
 
-export default { encryptedPwd };
+// decrypt password
+const comparePwd = (plainPass: string, encryptedPass: string) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const comparePass = await bcrypt.compare(plainPass, encryptedPass);
+      resolve(comparePass);
+    } catch (err) {
+      reject(err);
+    }
+  });
+
+export default { encryptedPwd, comparePwd };
