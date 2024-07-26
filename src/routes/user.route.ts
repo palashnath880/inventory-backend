@@ -9,7 +9,7 @@ userRouter.post(`/`, UserController.create);
 // get all users
 userRouter.get(`/`, UserController.getUsers);
 
-// update rroute
+// update route
 userRouter.put(`/:userId`, UserController.update);
 
 // delete route
