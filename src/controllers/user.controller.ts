@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma";
+import PWD from "../lib/password";
 
 // create user
 const create = async (req: Request, res: Response) => {
@@ -26,8 +27,13 @@ const create = async (req: Request, res: Response) => {
       } else {
         message = "User exists at this phone no";
       }
-      res.send({ message }).status(400);
+      return res.send({ message }).status(400);
     }
+
+    // generate pwd
+    const password = await PWD.encryptedPwd(newUser?.password);
+    newUser.password = password;
+    newUser.isAdmin = false;
 
     // created user
     const result = await prisma.user.create({
@@ -57,7 +63,7 @@ const getUsers = async (
 
     if (search) {
       filterQuery.where = {
-        name: { contains: search },
+        OR: [{ name: { contains: search } }, { phoneNo: { contains: search } }],
       };
     }
 
@@ -68,6 +74,14 @@ const getUsers = async (
     const users = await prisma.user.findMany({
       skip: skip,
       ...filterQuery,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phoneNo: true,
+        isAdmin: true,
+        createdAt: true,
+      },
     });
 
     const result = {
